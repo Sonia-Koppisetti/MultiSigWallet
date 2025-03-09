@@ -4,6 +4,7 @@ import viteLogo from '/vite.svg'
 import './App.css'
 import { ethers } from "ethers"
 import { SimpleAccountAPI } from "@account-abstraction/sdk"
+import axios from "axios"
 
 
 const ABI = [
@@ -24,7 +25,52 @@ function App() {
   const [transactions, setTransactions] = useState([]);
   const [newTx, setNewTx] = useState({ to: "", value: "", token:"" });
   const [loading, setLoading] = useState(false);
-
+  const [url, setUrl] = useState(null);
+  const [showBundlerTransactions, setShowBundlerTransactions] = useState(false);
+  const [bundlerTransactions, setBundlerTransactions] = useState(
+    [
+            {
+                to : '0xf5715961C550FC497832063a98eA34673ad7C816',
+                value: BigInt(1).toString(),
+                data: "0x"
+            },
+            {
+                to : '0xf5715961C550FC497832063a98eA34673ad7C816',
+                value: BigInt(1).toString(),
+                data: "0x"
+            },
+            {
+                to : '0xf5715961C550FC497832063a98eA34673ad7C816',
+                value: BigInt(1).toString(),
+                data: "0x"
+            },
+            {
+              to : '0xf5715961C550FC497832063a98eA34673ad7C816',
+              value: BigInt(1).toString(),
+              data: "0x"
+          },
+          {
+            to : '0xf5715961C550FC497832063a98eA34673ad7C816',
+            value: BigInt(1).toString(),
+            data: "0x"
+        },
+        {
+          to : '0xf5715961C550FC497832063a98eA34673ad7C816',
+          value: BigInt(1).toString(),
+          data: "0x"
+      },
+      {
+        to : '0xf5715961C550FC497832063a98eA34673ad7C816',
+        value: BigInt(1).toString(),
+        data: "0x"
+    },
+    {
+      to : '0xf5715961C550FC497832063a98eA34673ad7C816',
+      value: BigInt(1).toString(),
+      data: "0x"
+  }
+        ]
+  )
 
   useEffect(() =>{
     if(walletConnected){
@@ -130,43 +176,37 @@ function App() {
     
   }
 
-  async function createUserOp(to, value, data) {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    await provider.send("eth_requestAccounts", []); // Request MetaMask connection
-    const signer = provider.getSigner(); // Get MetaMask signer
 
-    // **1. Initialize Smart Account API**
-    const accountAPI = new SimpleAccountAPI({
-        provider,
-        entryPointAddress,
-        owner: signer,
-    });
+async function onBundleSend() {
+    setLoading(true);
+    try {
+        console.log("bundlerTransactions", bundlerTransactions)
+        const response = await axios.post("http://localhost:5000/bundleTransactions", {
+            transactions: bundlerTransactions,
+        });
 
-    const sender = await accountAPI.getAccountAddress(); // Smart Account address
-    const nonce = await accountAPI.getNonce();
+        console.log("Response:", JSON.stringify(response));
 
-    // **2. Prepare UserOperation**
-    // let userOp = {
-    //     sender,
-    //     nonce,
-    //     initCode: "0x", // Leave empty if account already exists
-    //     callData: await accountAPI.encodeExecute(to, value, data),
-    //     callGasLimit: 100000,
-    //     verificationGasLimit: 100000,
-    //     preVerificationGas: 50000,
-    //     maxFeePerGas: ethers.utils.parseUnits("50", "gwei"),
-    //     maxPriorityFeePerGas: ethers.utils.parseUnits("2", "gwei"),
-    //     paymasterAndData: "0x", // If using a paymaster, provide necessary data
-    //     signature: "0x", // Will be signed later
-    // };
-
-    // // **3. Sign UserOperation Hash with MetaMask**
-    // const userOpHash = await accountAPI.getUserOpHash(userOp);
-    // userOp.signature = await signer.signMessage(ethers.utils.arrayify(userOpHash));
-
-    // console.log("Signed UserOperation:", userOp);
-    // return userOp;
+        
+        setUrl(`https://sepolia.basescan.org/tx/${response.data.response}`);
+        console.log(`https://sepolia.basescan.org/${response.data.response}`)
+        
+        setLoading(false);
+    } catch (error) {
+        console.error("Error calling API:", error);
+        setLoading(false);
+    }
 }
+
+const CustomAlert = ({ message, url, onClose }) => (
+  <div style={{ padding: 20, background: "#fff", border: "1px solid #ccc", position: "fixed", top: "20%", left: "50%", transform: "translate(-50%, 0)", zIndex: 1000 }}>
+    <p>{message}</p>
+    <a href={url} target="_blank" rel="noopener noreferrer">Click here</a>
+    <button onClick={onClose}>Close</button>
+  </div>
+);
+
+
 
   return (
     <div>
@@ -192,11 +232,57 @@ function App() {
       }}>
         <div>Bankai LABS</div>
         <div style={{display:"flex", flexDirection:"row"}}>
+        <button style={{
+        display:"flex",
+        alignSelf:"center"
+      }} onClick={() => {
+        setShowBundlerTransactions(!showBundlerTransactions)
+      }}>Send Via Bundler</button>
+
           <button style={{marginRight: "10px"}}>{!connectedAddress ? "" : connectedAddress.toString().slice(0,9)+ "...."}</button>
           <button onClick={connectWallet}>{!walletConnected ? "Connect" : "DisConnect"}</button>
         </div>
       </div>
 
+      
+
+     {showBundlerTransactions && <div style={{ width: "100%", marginBottom: "50px"}}>
+          {
+            bundlerTransactions.map((i,index) => (
+              <div style={{display:"flex", alignSelf:"center", justifyContent:"space-between", alignItems:"center", height: "50px", width: "80%", justifySelf:"center"}}>
+                <div>Transaction {index+1}</div>
+                <div>
+                <label>To:</label>
+                <input value={i.to}/>
+                </div>
+                <div>
+                <label>Value:</label>
+                <input value={i.value}/>
+                </div>
+                <div>
+                <label>Data:</label>
+                <input value= {i.data}/>
+                </div>
+              </div>
+            ))
+            
+          }
+          <div style={{
+            display:"flex",
+            flexDirection:"row",
+            alignItems:"center",
+            justifyContent:"center"
+          }}>
+          <button style={{
+            display:"flex",
+            justifySelf:"center",
+            marginRight:"10px"
+            
+          }} onClick={onBundleSend}>Send Transactions</button>
+          {url && <a href={url} target="_blank" rel="noopener noreferrer">View Transaction</a>}
+          </div>
+          
+      </div>}
       <div>
         <div style={{alignSelf:"center", justifyContent:"center", display:"flex"}}>
           MultiSignature Wallet - {MULTISIG_CONTRACT}
@@ -213,9 +299,7 @@ function App() {
         }
         
       </div>
-      <div>
-        <button onClick={createUserOp("0xf5715961C550FC497832063a98eA34673ad7C816", "0", "0x")}>Create UserOp</button>
-      </div>
+      
 
       <div>
           <h3 style={{display:"flex", alignSelf:"center", justifyContent:"center"}}>Submit a Transaction</h3>
