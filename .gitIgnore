@@ -1,0 +1,12 @@
+backend/node_modules
+backend/.env
+backend/package-lock.json
+contracts/artifacts
+contracts/cache
+contracts/contractsnpx
+contracts/hardhat
+contracts/lib
+contracts/node_modules
+contracts/package-lock.json
+frontend/node_modules
+frontend/package-lock.json

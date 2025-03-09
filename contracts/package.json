@@ -1,0 +1,21 @@
+{
+  "name": "contracts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@nomicfoundation/hardhat-verify": "^2.0.13",
+    "hardhat": "^2.22.19"
+  },
+  "dependencies": {
+    "@account-abstraction/contracts": "^0.7.0",
+    "@openzeppelin/contracts": "^5.2.0",
+    "forge-std": "^1.1.2"
+  }
+}
